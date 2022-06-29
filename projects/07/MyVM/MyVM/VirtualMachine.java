@@ -5,8 +5,8 @@ import java.io.*;
 public class VirtualMachine{
 
     public static void main(String[] args) throws IOException{
-        String folder = "";
-        String fileName = "";
+        String folder = "projects\\07\\StackArithmetic\\StackTest";
+        String fileName = "StackTest";
 
         String fileIn = folder + "\\" + fileName + ".vm";
         String fileOut = folder + "\\" + fileName + ".asm";
