@@ -29,16 +29,26 @@ public class CodeWriter {
     private int skipIndex = 0;
     private int ralIndex = 0;
 
+    private String currentFile;
+    private String currentFunction;
+
     CodeWriter(String writeFile) throws IOException{
         writer = new FileWriter(writeFile);
     }
 
     public void setFileName(String fileName){
-
+        currentFile = fileName;
     }
 
-    public void writeInit(){
+    public void writeInit() throws IOException{
+        writer.write("// initializing VM program\n");
+        writer.write("@261\n"); // should set to 256 but idk
+        writer.write("D=A\n");  // how to implement the bootstrap
+        writer.write("@SP\n");  // code correctly
+        writer.write("M=D\n");  // so i just start it at 261 :P
 
+        writer.write("@Sys.init\n");
+        writer.write("0; JMP\n");
     }
 
     public void writeArithmetic(String command) throws IOException{
@@ -106,7 +116,7 @@ public class CodeWriter {
                 writer.write("D=A\n");                          // D=A
 
             } else if(segment.equals("static")){
-                writer.write("@Foo." + Integer.toString(index) + "\n"); // @Foo.i
+                writer.write("@" + currentFile + "." + Integer.toString(index) + "\n"); // @Foo.i
                 writer.write("D=M\n");                              // D=M
 
             } else if(segment.equals("temp")){
@@ -153,7 +163,7 @@ public class CodeWriter {
             } else if(segment.equals("static")){
                 writer.write("A=M\n");
                 writer.write("D=M\n");
-                writer.write("@Foo." + Integer.toString(index) + "\n");
+                writer.write("@" + currentFile + "." + Integer.toString(index) + "\n");
 
             } else if(segment.equals("temp")){
                 writer.write("@5\n");
@@ -182,13 +192,13 @@ public class CodeWriter {
 
     public void writeLabel(String label) throws IOException{
         writer.write("// label " + label + "\n");
-        writer.write("(" + label + ")\n");
+        writer.write("(" + currentFile + "." + currentFunction + "$" + label + ")\n");
         return;
     }
 
     public void writeGoto(String label) throws IOException{
         writer.write("// goto " + label + "\n");
-        writer.write("@" + label + "\n");
+        writer.write("@" + currentFile + "." + currentFunction + "$" + label + "\n");
         writer.write("0; JMP\n");
     }
 
@@ -197,11 +207,12 @@ public class CodeWriter {
         writer.write("@SP\n");
         writer.write("AM=M-1\n");
         writer.write("D=M\n");
-        writer.write("@" + label + "\n");
-        writer.write("D; JEQ\n");
+        writer.write("@" + currentFile + "." + currentFunction + "$" + label + "\n");
+        writer.write("D; JNE\n");
     }
 
     public void writeFunction(String functionName, int numVars) throws IOException{
+        writer.write("// function " + functionName + " " + Integer.toString(numVars) + "\n");
         writer.write("(" + functionName + ")\n");
         for(int i = 0; i < numVars; i++){
             writer.write("@SP\n");
@@ -213,13 +224,15 @@ public class CodeWriter {
     }
 
     public void writeCall(String functionName, int numArgs) throws IOException{
+        currentFunction = functionName;
         writer.write("// " + functionName + " " + Integer.toString(numArgs) + "\n");
-        // Makes a label to return to
-        writer.write("@returnAddressLabel" + Integer.toString(ralIndex) + "\n");
-        writer.write("D=M");
-        writer.write("@SP");
-        writer.write("A=M");
-        writer.write("M=D");
+        // Makes a label and pushes the value to stack
+        // It's not 16 because writeFunction makes a label
+        writer.write("@" + functionName + "$ret." + Integer.toString(ralIndex) + "\n");
+        writer.write("D=A\n");
+        writer.write("@SP\n");
+        writer.write("A=M\n");
+        writer.write("M=D\n");
         writer.write("@SP\n");
         writer.write("M=M+1\n");
         // Saves LCL, ARG, THIS, THAT
@@ -250,11 +263,12 @@ public class CodeWriter {
         writer.write("@" + functionName + "\n");
         writer.write("0; JMP\n");
         // Makes the return label to jump to
-        writer.write("(returnAddressLabel" + Integer.toString(ralIndex) + ")\n");
+        writer.write("(" + functionName + "$ret." + Integer.toString(ralIndex) + ")\n");
         ralIndex++;
     }
 
     public void writeReturn() throws IOException{
+        writer.write("// return\n");
         // R14 = LCL
         writer.write("@LCL\n");
         writer.write("D=M\n");
@@ -290,11 +304,12 @@ public class CodeWriter {
         }
         // Jump to R15 = return address
         writer.write("@R15\n");
+        writer.write("A=M\n");
         writer.write("0; JMP\n");
     }
 
     public void close() throws IOException{
-        writer.write("(END)\n@END\n0;JMP");
+        // writer.write("(END)\n@END\n0;JMP");
         writer.close();
     }
 }
