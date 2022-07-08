@@ -1,5 +1,6 @@
 {
     "java.project.sourcePaths": [
-        "projects\\08\\MyFinalVM"
+        "projects/08/MyFinalVM",
+        "projects/10/JackAnalyzer"
     ]
 }

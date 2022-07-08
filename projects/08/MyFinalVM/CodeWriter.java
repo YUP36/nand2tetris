@@ -13,7 +13,7 @@ public class CodeWriter {
 
     private final ArrayList<String> EGL = new ArrayList<String>(Arrays.asList("eq", "gt", "lt"));
     private final ArrayList<String> EGLSymbols = new ArrayList<String>(Arrays.asList("JEQ", "JGT", "JLT"));
-
+// 
     // SP -> constant
     // LCL -> local
     // ARG -> argument
