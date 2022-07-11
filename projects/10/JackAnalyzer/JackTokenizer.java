@@ -23,11 +23,11 @@ class JackTokenizer{
 
             int commentBlockStart = line.indexOf("/**");
             int commentBlockEnd = line.indexOf("*/");
-            if(commentBlock){
-                line = "";
-            } else if(commentBlockStart >= 0 || commentBlockEnd >= 0){
+            if(commentBlockStart >= 0 || commentBlockEnd >= 0){
                 line = "";
                 commentBlock = (commentBlockStart >= 0) && !(commentBlockEnd >= 0);
+            } else if (commentBlock){
+                line = "";
             }
             if(line.indexOf("//") >= 0){
                 line = line.substring(0, line.indexOf("//"));
@@ -69,6 +69,7 @@ class JackTokenizer{
                 tokens.addAll(section);
             }
         }
+        advance();
     }
 
     public boolean hasMoreTokens(){
@@ -77,6 +78,19 @@ class JackTokenizer{
 
     public void advance(){
         currentIndex += 1;
+        if(currentIndex < tokens.size()){
+            update();
+        } else{
+            System.out.println("This is the end of the line. This stops here!");
+        }
+    }
+
+    public void back(){
+        currentIndex -= 1;
+        update();
+    }
+
+    public void update(){
         currentToken = tokens.get(currentIndex);
         if(keywordTokens.contains(currentToken)){
             tokenType = "keyword";
@@ -95,24 +109,10 @@ class JackTokenizer{
         return tokenType;
     }
 
-    public String keyword(){
-        return currentToken;    // im not gonna make it all caps
-    }
-
-    public String symbol(){
+    public String getToken(){
+        if(tokenType.equals("stringConstant")){
+            return currentToken.substring(1, currentToken.length() - 1);
+        }
         return currentToken;
     }
-
-    public String identifier(){
-        return currentToken;        
-    }
-
-    public String intVal(){
-        return currentToken;
-    }
-
-    public String stringVal(){
-        return currentToken.substring(1, currentToken.length() - 1);
-    }
-
 }
