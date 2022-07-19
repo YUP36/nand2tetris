@@ -17,7 +17,7 @@ public class VMWriter {
     }
 
     public void writePop(String segment, int index) throws IOException{
-        write("pop" + segment + " " + index);
+        write("pop " + segment + " " + index);
     }
 
     public void writeArithmetic(String command) throws IOException{

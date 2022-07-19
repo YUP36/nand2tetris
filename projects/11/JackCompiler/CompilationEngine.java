@@ -11,8 +11,6 @@ public class CompilationEngine {
     private ArrayList<String> opTokens = new ArrayList<String>(Arrays.asList("+", "-", "*", "/", "&", "|", "<", ">", "="));
     private ArrayList<String> unaryOpTokens = new ArrayList<String>(Arrays.asList("-", "~"));
     private ArrayList<String> keywordConstantTokens = new ArrayList<String>(Arrays.asList("true", "false", "null", "this"));
-    private ArrayList<String> diffOutputs = new ArrayList<String>(Arrays.asList("<", ">", "\"", "&"));
-    private ArrayList<String> diffOutputsValues = new ArrayList<String>(Arrays.asList("&lt;", "&gt;", "&quot;", "&amp;"));
 
     private VMWriter vmWriter;
     private JackTokenizer tokenizer;
@@ -27,14 +25,8 @@ public class CompilationEngine {
     }
 
     public void advanceToken() throws IOException{
-        String token = tokenizer.getToken();
-        if(diffOutputs.contains(token)){
-            token = diffOutputsValues.get(diffOutputs.indexOf(token));
-        }
-
-        String terminalElement = tokenizer.tokenType();
-        
         tokenizer.advance();
+        System.out.print(tokenizer.getToken() + " ");
     }
 
     public boolean isEnding(){
@@ -55,13 +47,9 @@ public class CompilationEngine {
 
     // class className {classVarDec* subroutineDec*}
     public void compileClass() throws IOException{
-        writeStartingOuterTag("class");
-
-        // write class keyword
         advanceToken();
-        // write className
+        symbolTable.setClassName(tokenizer.getToken());
         advanceToken();
-        // write {classVarDec* subroutineDec*}
         advanceToken();
         while(staticField()){
             compileClassVarDec();
@@ -70,8 +58,6 @@ public class CompilationEngine {
             compileSubroutineDec();
         }
         advanceToken();
-
-        writeEndingOuterTag("class");
     }
 
     // (static|field) type varName (',' varName)*;
@@ -92,50 +78,64 @@ public class CompilationEngine {
         advanceToken();
     }
 
+    String currentFunctionType;
+    String currentFunctionName;
     // constructor|function|method void|type subroutineName (parameterList) subroutineBody
     public void compileSubroutineDec() throws IOException{
-        writeStartingOuterTag("subroutineDec");
-
+        symbolTable.startSubroutine();
         // write cfm vt subroutineName
+        String cfm = tokenizer.getToken();
         advanceToken();
+        currentFunctionType = tokenizer.getToken();
         advanceToken();
+        String subroutineName = tokenizer.getToken();
         advanceToken();
         // write (parameterList) subroutineBody
         advanceToken();
         compileParameterList();
         advanceToken();
+        currentFunctionName = symbolTable.getClassName() + "." + subroutineName;
+        // if(cfm.equals("method"))
         compileSubroutineBody();
-
-        writeEndingOuterTag("subroutineDec");
     }
 
     // type varName, ...
     public void compileParameterList() throws IOException{
-        while(!isEnding()){
-            String type = tokenizer.getToken();
+        String type, name;
+        if(!isEnding()){
+            type = tokenizer.getToken();
             advanceToken();
-            String name = tokenizer.getToken();
+            name = tokenizer.getToken();
             advanceToken();
             symbolTable.define(name, type, "argument");
         }
+        while(!isEnding()){
+            advanceToken();
+            type = tokenizer.getToken();
+            advanceToken();
+            name = tokenizer.getToken();
+            advanceToken();
+            symbolTable.define(name, type, "argument");
+            System.out.println("\n" + name + "     " + type);
+        }
     }
 
+    int varDecCount = 0;
     // {varDec* statements}
     public void compileSubroutineBody() throws IOException{
-        writeStartingOuterTag("subroutineBody");
-
         advanceToken();
+        varDecCount = 0;
         while(tokenizer.getToken().equals("var")){
             compileVarDec();
         }
+        vmWriter.writeFunction(currentFunctionName, varDecCount);
         compileStatements();
         advanceToken();
-
-        writeEndingOuterTag("subroutineBody");
     }
     
     // var type varName (,varName)*;
     public void compileVarDec() throws IOException{
+        varDecCount++;
         advanceToken();
         String type = tokenizer.getToken();
         advanceToken();
@@ -149,14 +149,13 @@ public class CompilationEngine {
             name = tokenizer.getToken();
             advanceToken();
             symbolTable.define(name, type, "local");
+            varDecCount++;
         }
         advanceToken();
     }
 
     // statement*
     public void compileStatements() throws IOException{
-        writeStartingOuterTag("statements");
-
         // letStatement|ifStatement|whileStatement...
         while(statementTokens.contains(tokenizer.getToken())){
             if(tokenizer.getToken().equals("let")){
@@ -171,28 +170,25 @@ public class CompilationEngine {
                 compileReturn();
             }
         }
-
-        writeEndingOuterTag("statements");
     }
     
     // let varName [expression]? = expression;
     public void compileLet() throws IOException{
-        writeStartingOuterTag("letStatement");
-
         advanceToken();
+        String name = tokenizer.getToken();
         advanceToken();
         // checks for '['
         if(isStarting()){
             advanceToken();
             compileExpression();
             advanceToken();
+            vmWriter.writeArithmetic("add");
         }
         // write = expression;
         advanceToken();
         compileExpression();
         advanceToken();
-
-        writeEndingOuterTag("letStatement");
+        vmWriter.writePop(symbolTable.kindOf(name), symbolTable.indexOf(name));
     }
     
     private int ifIndex = 0;
@@ -236,27 +232,24 @@ public class CompilationEngine {
         vmWriter.writeLabel(L1);
         compileExpression();
         vmWriter.writeArithmetic("not");
-        vmWriter.writeGoto(L2);
+        vmWriter.writeIf(L2);
         advanceToken();
         advanceToken();
-        vmWriter.writeGoto(L1);
         compileStatements();
+        vmWriter.writeGoto(L1);
         vmWriter.writeLabel(L2);
         advanceToken();
     }
 
     // do subroutineCall;
     public void compileDo() throws IOException{
-        writeStartingOuterTag("doStatement");
-
         advanceToken();
         // write subroutine call
         while(!isEnding()){
             subroutineCall();
         }
         advanceToken();
-
-        writeEndingOuterTag("doStatement");
+        vmWriter.writePop("temp", 0);
     }
 
     // return expression?;
@@ -265,60 +258,116 @@ public class CompilationEngine {
         if(!isEnding()){
             compileExpression();
         }
+        if(currentFunctionType.equals("void")){
+            vmWriter.writePush("constant", 0);
+        }
         vmWriter.writeReturn();
         advanceToken();
     }
 
     // term (op term)*
     public void compileExpression() throws IOException{
-        writeStartingOuterTag("expression");
-        
         compileTerm();
         while(opTokens.contains(tokenizer.getToken())){
+            String op = tokenizer.getToken();
             advanceToken();
             compileTerm();
+            // "+", "-", "*", "/", "&", "|", "<", ">", "="
+            if(op.equals("+")){
+                vmWriter.writeArithmetic("add");
+            } else if(op.equals("-")){
+                vmWriter.writeArithmetic("sub");
+            } else if(op.equals("*")){
+                vmWriter.writeCall("Math.multiply", 2);
+            } else if(op.equals("/")){
+                vmWriter.writeCall("Math.divide", 2);
+            } else if(op.equals("&")){
+                vmWriter.writeArithmetic("and");
+            } else if(op.equals("|")){
+                vmWriter.writeArithmetic("or");
+            } else if(op.equals("<")){
+                vmWriter.writeArithmetic("lt");
+            } else if(op.equals(">")){
+                vmWriter.writeArithmetic("gt");
+            } else if(op.equals("=")){
+                vmWriter.writeArithmetic("eq");
+            }
         }
-
-        writeEndingOuterTag("expression");
     }
 
     // integerConst|stringConst|keywordConst|varName|varName[expression]|subroutineCall|(expression)|unaryOp term
     public void compileTerm() throws IOException{
-        writeStartingOuterTag("term");
-        
         if(tokenizer.tokenType().equals("integerConstant")){
+            // integerConst
+            vmWriter.writePush("constant", Integer.parseInt(tokenizer.getToken()));
             advanceToken();
         } else if(tokenizer.tokenType().equals("stringConstant")){
+            // stringConst
+            String str = tokenizer.getToken();
             advanceToken();
+            vmWriter.writePush("constant", str.length());
+            vmWriter.writeCall("String.new", 1);
+            for(int i = 0; i < str.length(); i++){
+                vmWriter.writePush("constant", Character.getNumericValue(str.charAt(i)));
+                vmWriter.writeCall("String.appendChar", 2);
+            }
         } else if(keywordConstantTokens.contains(tokenizer.getToken())){
+            // keywordConst
+            String keyword = tokenizer.getToken();
+            if(keyword.equals("null") || keyword.equals("false")){
+                vmWriter.writePush("constant", 0);
+            } else if(keyword.equals("true")){
+                // true is -1; this could also be accomplished by push 0, not
+                vmWriter.writePush("constant", 1);
+                vmWriter.writeArithmetic("neg");
+            } else{
+                vmWriter.writePush("this", 0);
+            }
             advanceToken();
         } else if(unaryOpTokens.contains(tokenizer.getToken())){
+            String unaryOp = "";
+            if(tokenizer.getToken().equals("-")){
+                unaryOp = "neg";
+            } else if(tokenizer.getToken().equals("~")){
+                unaryOp = "not";
+            }
+            // unaryOp term
             advanceToken();
             compileTerm();
+            vmWriter.writeArithmetic(unaryOp);
         } else if(tokenizer.getToken().equals("(")){
+            // (expression)
             advanceToken();
             compileExpression();
             advanceToken();
-        } else {
+        } else{
+            // starts with varName
             tokenizer.advance();
             if(isStarting()){
                 if(tokenizer.getToken().equals("[")){
+                    // varName[expression]
                     tokenizer.back();
+                    String name = tokenizer.getToken();
+                    vmWriter.writePush(symbolTable.kindOf(name), symbolTable.indexOf(name));
                     advanceToken();
                     advanceToken();
                     compileExpression();
                     advanceToken();
+                    vmWriter.writeArithmetic("add");
+                    vmWriter.writePop("pointer", 1);
                 } else{
+                    // subroutineCall
                     tokenizer.back();
                     subroutineCall();
                 }
             } else{
+                // varName
                 tokenizer.back();
+                String name = tokenizer.getToken();
+                vmWriter.writePush(symbolTable.kindOf(name), symbolTable.indexOf(name));
                 advanceToken();
             }
         }
-        
-        writeEndingOuterTag("term");
     }
 
     public void subroutineCall() throws IOException{
@@ -327,35 +376,43 @@ public class CompilationEngine {
         if(tokenizer.getToken().equals("(")){
             tokenizer.back();
             // subroutineName(expressionList)
+            String subroutineName = tokenizer.getToken();
             advanceToken();
             advanceToken();
             compileExpressionList();
             advanceToken();
+            vmWriter.writeCall(subroutineName, expressionListCount);
         } else if(tokenizer.getToken().equals(".")){
             tokenizer.back();
             // (className|varName).subroutineName(expressionList)
+            String cvName = tokenizer.getToken();
             advanceToken();
             advanceToken();
+            String subroutineName = tokenizer.getToken();
             advanceToken();
             advanceToken();
             compileExpressionList();
             advanceToken();
+            String fullName = cvName + "." + subroutineName;
+            vmWriter.writeCall(fullName, expressionListCount);
         } else{
             vmWriter.write("SUBROUTINE CALL ERROR");
         }
     }
 
+    int expressionListCount = 0;
     // (expression (',' expression)* )?
     public void compileExpressionList() throws IOException{
-        writeStartingOuterTag("expressionList");
+        expressionListCount = 0;
         if(!isEnding()){
+            expressionListCount = 1;
             compileExpression();
             while(!isEnding()){
+                expressionListCount++;
                 advanceToken();
                 compileExpression();
             }
         }
-        writeEndingOuterTag("expressionList");
     }
 
 }
