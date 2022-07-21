@@ -1,5 +1,6 @@
 {
     "java.project.sourcePaths": [
         "projects\\11\\JackCompiler"
-    ]
+    ],
+    "workbench.editor.titleScrollbarSizing": "large"
 }

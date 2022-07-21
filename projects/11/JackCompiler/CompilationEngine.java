@@ -3,15 +3,6 @@ import java.util.*;
 
 public class CompilationEngine {
 
-    private ArrayList<String> statementTokens = new ArrayList<String>(Arrays.asList("let", "if", "while", "do", "return"));
-    private ArrayList<String> endingTokens = new ArrayList<String>(Arrays.asList("]", "}", ")", ";"));
-    private ArrayList<String> startingTokens = new ArrayList<String>(Arrays.asList("[", "{", "(", "."));
-    private ArrayList<String> sfTokens = new ArrayList<String>(Arrays.asList("static", "field"));
-    private ArrayList<String> cfmTokens = new ArrayList<String>(Arrays.asList("constructor", "function", "method"));
-    private ArrayList<String> opTokens = new ArrayList<String>(Arrays.asList("+", "-", "*", "/", "&", "|", "<", ">", "="));
-    private ArrayList<String> unaryOpTokens = new ArrayList<String>(Arrays.asList("-", "~"));
-    private ArrayList<String> keywordConstantTokens = new ArrayList<String>(Arrays.asList("true", "false", "null", "this"));
-
     private VMWriter vmWriter;
     private JackTokenizer tokenizer;
     private SymbolTable symbolTable;
@@ -24,33 +15,49 @@ public class CompilationEngine {
         vmWriter.close();
     }
 
+    public void advanceToken(int num) throws IOException{
+        for(int i = 0; i < num; i++){
+            tokenizer.advance();
+        }
+    }
+    
     public void advanceToken() throws IOException{
-        tokenizer.advance();
-        System.out.print(tokenizer.getToken() + " ");
+        advanceToken(1);
     }
 
+    private ArrayList<String> endingTokens = new ArrayList<String>(Arrays.asList("]", "}", ")", ";"));
     public boolean isEnding(){
         return endingTokens.contains(tokenizer.getToken());
     }
 
+    private ArrayList<String> startingTokens = new ArrayList<String>(Arrays.asList("[", "{", "(", "."));
     public boolean isStarting(){
         return startingTokens.contains(tokenizer.getToken());
     }
 
+    private ArrayList<String> sfTokens = new ArrayList<String>(Arrays.asList("static", "field"));
     public boolean staticField(){
         return sfTokens.contains(tokenizer.getToken());
     }
 
+    private ArrayList<String> cfmTokens = new ArrayList<String>(Arrays.asList("constructor", "function", "method"));
     public boolean constructorFunctionMethod(){
         return cfmTokens.contains(tokenizer.getToken());
+    }
+
+    public String getKind(String name){
+        if(symbolTable.kindOf(name).equals("field")){
+            return "this";
+        } else{
+            return symbolTable.kindOf(name);
+        }
     }
 
     // class className {classVarDec* subroutineDec*}
     public void compileClass() throws IOException{
         advanceToken();
         symbolTable.setClassName(tokenizer.getToken());
-        advanceToken();
-        advanceToken();
+        advanceToken(2);
         while(staticField()){
             compileClassVarDec();
         }
@@ -60,8 +67,10 @@ public class CompilationEngine {
         advanceToken();
     }
 
+    private int classVarDecCount = 0;
     // (static|field) type varName (',' varName)*;
     public void compileClassVarDec() throws IOException{
+        classVarDecCount++;
         String kind = tokenizer.getToken();
         advanceToken();
         String type = tokenizer.getToken();
@@ -70,6 +79,7 @@ public class CompilationEngine {
         advanceToken();
         symbolTable.define(name, type, kind);
         while(!isEnding()){
+            classVarDecCount++;
             advanceToken();
             name = tokenizer.getToken();
             advanceToken();
@@ -80,47 +90,42 @@ public class CompilationEngine {
 
     String currentFunctionType;
     String currentFunctionName;
+    String cfm;
     // constructor|function|method void|type subroutineName (parameterList) subroutineBody
     public void compileSubroutineDec() throws IOException{
         symbolTable.startSubroutine();
         // write cfm vt subroutineName
-        String cfm = tokenizer.getToken();
+        cfm = tokenizer.getToken();
         advanceToken();
         currentFunctionType = tokenizer.getToken();
         advanceToken();
-        String subroutineName = tokenizer.getToken();
-        advanceToken();
+        currentFunctionName = symbolTable.getClassName() + "." + tokenizer.getToken();
+        advanceToken(2);
         // write (parameterList) subroutineBody
-        advanceToken();
         compileParameterList();
-        advanceToken();
-        currentFunctionName = symbolTable.getClassName() + "." + subroutineName;
-        // if(cfm.equals("method"))
+        advanceToken(); 
         compileSubroutineBody();
     }
 
+
     // type varName, ...
     public void compileParameterList() throws IOException{
-        String type, name;
-        if(!isEnding()){
-            type = tokenizer.getToken();
-            advanceToken();
-            name = tokenizer.getToken();
-            advanceToken();
-            symbolTable.define(name, type, "argument");
+        if(cfm.equals("method")){
+            symbolTable.define(currentFunctionName, "object", "argument");
         }
+        String type, name;
         while(!isEnding()){
-            advanceToken();
             type = tokenizer.getToken();
             advanceToken();
             name = tokenizer.getToken();
             advanceToken();
             symbolTable.define(name, type, "argument");
-            System.out.println("\n" + name + "     " + type);
+            if(!isEnding()){
+                advanceToken();
+            }
         }
     }
-
-    int varDecCount = 0;
+ 
     // {varDec* statements}
     public void compileSubroutineBody() throws IOException{
         advanceToken();
@@ -129,10 +134,19 @@ public class CompilationEngine {
             compileVarDec();
         }
         vmWriter.writeFunction(currentFunctionName, varDecCount);
+        if(cfm.equals("constructor")){
+            vmWriter.writePush("constant", classVarDecCount);
+            vmWriter.writeCall("Memory.alloc", 1);
+            vmWriter.writePop("pointer", 0);
+        } else if(cfm.equals("method")){
+            vmWriter.writePush("argument", 0);
+            vmWriter.writePop("pointer", 0);
+        }
         compileStatements();
         advanceToken();
     }
     
+    int varDecCount = 0;
     // var type varName (,varName)*;
     public void compileVarDec() throws IOException{
         varDecCount++;
@@ -154,6 +168,7 @@ public class CompilationEngine {
         advanceToken();
     }
 
+    private ArrayList<String> statementTokens = new ArrayList<String>(Arrays.asList("let", "if", "while", "do", "return"));
     // statement*
     public void compileStatements() throws IOException{
         // letStatement|ifStatement|whileStatement...
@@ -177,18 +192,24 @@ public class CompilationEngine {
         advanceToken();
         String name = tokenizer.getToken();
         advanceToken();
-        // checks for '['
-        if(isStarting()){
+        if(isStarting()){   // checks for '['
+            advanceToken();
+            compileExpression();
+            advanceToken(2);
+            vmWriter.writePush(getKind(name), symbolTable.indexOf(name));
+            vmWriter.writeArithmetic("add");
+            compileExpression();
+            advanceToken();
+            vmWriter.writePop("temp", 0);
+            vmWriter.writePop("pointer", 1);
+            vmWriter.writePush("temp", 0);
+            vmWriter.writePop("that", 0);
+        } else{     // write = expression;
             advanceToken();
             compileExpression();
             advanceToken();
-            vmWriter.writeArithmetic("add");
+            vmWriter.writePop(getKind(name), symbolTable.indexOf(name));
         }
-        // write = expression;
-        advanceToken();
-        compileExpression();
-        advanceToken();
-        vmWriter.writePop(symbolTable.kindOf(name), symbolTable.indexOf(name));
     }
     
     private int ifIndex = 0;
@@ -198,20 +219,17 @@ public class CompilationEngine {
         String L2 = "elseLabel." + Integer.toString(ifIndex);
         ifIndex++;
 
-        advanceToken();
-        advanceToken();
+        advanceToken(2);
         compileExpression();
         vmWriter.writeArithmetic("not");
         vmWriter.writeIf(L1);
-        advanceToken();
-        advanceToken();
+        advanceToken(2);
         compileStatements();
         advanceToken();
         if(tokenizer.getToken().equals("else")){
             vmWriter.writeGoto(L2);
             vmWriter.writeLabel(L1);
-            advanceToken();
-            advanceToken();
+            advanceToken(2);
             compileStatements();
             advanceToken();
             vmWriter.writeLabel(L2);
@@ -227,14 +245,12 @@ public class CompilationEngine {
         String L2 = "breakWhileLoop." + Integer.toString(whileIndex);
         whileIndex++;
 
-        advanceToken();
-        advanceToken();
+        advanceToken(2);
         vmWriter.writeLabel(L1);
         compileExpression();
         vmWriter.writeArithmetic("not");
         vmWriter.writeIf(L2);
-        advanceToken();
-        advanceToken();
+        advanceToken(2);
         compileStatements();
         vmWriter.writeGoto(L1);
         vmWriter.writeLabel(L2);
@@ -249,6 +265,7 @@ public class CompilationEngine {
             subroutineCall();
         }
         advanceToken();
+        // do is called for void methods, so we ignore the return value
         vmWriter.writePop("temp", 0);
     }
 
@@ -259,12 +276,17 @@ public class CompilationEngine {
             compileExpression();
         }
         if(currentFunctionType.equals("void")){
+            // void methods return 0 by default
             vmWriter.writePush("constant", 0);
         }
         vmWriter.writeReturn();
         advanceToken();
     }
 
+    private ArrayList<String> opTokens = new ArrayList<String>(Arrays.asList("+", "-", "*", "/", "&", "|", "<", ">", "="));
+    private ArrayList<String> commands = new ArrayList<String>(Arrays.asList("add", "sub", "Math.multiply", "Math.divide", "and", "or", "lt", "gt", "eq"));
+    private ArrayList<String> advancedOpTokens = new ArrayList<String>(Arrays.asList("*", "/"));
+    private ArrayList<String> advancedCommands = new ArrayList<String>(Arrays.asList("Math.multiply", "Math.divide"));
     // term (op term)*
     public void compileExpression() throws IOException{
         compileTerm();
@@ -272,47 +294,32 @@ public class CompilationEngine {
             String op = tokenizer.getToken();
             advanceToken();
             compileTerm();
-            // "+", "-", "*", "/", "&", "|", "<", ">", "="
-            if(op.equals("+")){
-                vmWriter.writeArithmetic("add");
-            } else if(op.equals("-")){
-                vmWriter.writeArithmetic("sub");
-            } else if(op.equals("*")){
-                vmWriter.writeCall("Math.multiply", 2);
-            } else if(op.equals("/")){
-                vmWriter.writeCall("Math.divide", 2);
-            } else if(op.equals("&")){
-                vmWriter.writeArithmetic("and");
-            } else if(op.equals("|")){
-                vmWriter.writeArithmetic("or");
-            } else if(op.equals("<")){
-                vmWriter.writeArithmetic("lt");
-            } else if(op.equals(">")){
-                vmWriter.writeArithmetic("gt");
-            } else if(op.equals("=")){
-                vmWriter.writeArithmetic("eq");
+            if(advancedOpTokens.contains(op)){
+                vmWriter.writeCall(advancedCommands.get(advancedOpTokens.indexOf(op)), 2);
+            } else{
+                vmWriter.writeArithmetic(commands.get(opTokens.indexOf(op)));
             }
         }
     }
 
+    private ArrayList<String> unaryOpTokens = new ArrayList<String>(Arrays.asList("-", "~"));
+    private ArrayList<String> unaryOpCommands = new ArrayList<String>(Arrays.asList("neg", "not"));
+    private ArrayList<String> keywordConstantTokens = new ArrayList<String>(Arrays.asList("true", "false", "null", "this"));
     // integerConst|stringConst|keywordConst|varName|varName[expression]|subroutineCall|(expression)|unaryOp term
     public void compileTerm() throws IOException{
-        if(tokenizer.tokenType().equals("integerConstant")){
-            // integerConst
+        if(tokenizer.tokenType().equals("integerConstant")){            // integerConst
             vmWriter.writePush("constant", Integer.parseInt(tokenizer.getToken()));
             advanceToken();
-        } else if(tokenizer.tokenType().equals("stringConstant")){
-            // stringConst
+        } else if(tokenizer.tokenType().equals("stringConstant")){      // stringConst
             String str = tokenizer.getToken();
             advanceToken();
             vmWriter.writePush("constant", str.length());
             vmWriter.writeCall("String.new", 1);
             for(int i = 0; i < str.length(); i++){
-                vmWriter.writePush("constant", Character.getNumericValue(str.charAt(i)));
+                vmWriter.writePush("constant", (int) str.charAt(i));
                 vmWriter.writeCall("String.appendChar", 2);
             }
-        } else if(keywordConstantTokens.contains(tokenizer.getToken())){
-            // keywordConst
+        } else if(keywordConstantTokens.contains(tokenizer.getToken())){         // keywordConst
             String keyword = tokenizer.getToken();
             if(keyword.equals("null") || keyword.equals("false")){
                 vmWriter.writePush("constant", 0);
@@ -321,91 +328,83 @@ public class CompilationEngine {
                 vmWriter.writePush("constant", 1);
                 vmWriter.writeArithmetic("neg");
             } else{
-                vmWriter.writePush("this", 0);
+                vmWriter.writePush("pointer", 0);
             }
             advanceToken();
-        } else if(unaryOpTokens.contains(tokenizer.getToken())){
-            String unaryOp = "";
-            if(tokenizer.getToken().equals("-")){
-                unaryOp = "neg";
-            } else if(tokenizer.getToken().equals("~")){
-                unaryOp = "not";
-            }
-            // unaryOp term
+        } else if(unaryOpTokens.contains(tokenizer.getToken())){                 // unaryOp term 
+            String unaryOp = unaryOpCommands.get(unaryOpTokens.indexOf(tokenizer.getToken()));
             advanceToken();
             compileTerm();
             vmWriter.writeArithmetic(unaryOp);
-        } else if(tokenizer.getToken().equals("(")){
-            // (expression)
+        } else if(tokenizer.getToken().equals("(")){                    // (expression)
             advanceToken();
             compileExpression();
             advanceToken();
-        } else{
-            // starts with varName
+        } else{                                                                 // starts with varName
             tokenizer.advance();
             if(isStarting()){
-                if(tokenizer.getToken().equals("[")){
-                    // varName[expression]
+                if(tokenizer.getToken().equals("[")){   // varName[expression]
                     tokenizer.back();
                     String name = tokenizer.getToken();
-                    vmWriter.writePush(symbolTable.kindOf(name), symbolTable.indexOf(name));
-                    advanceToken();
-                    advanceToken();
+                    advanceToken(2);
                     compileExpression();
                     advanceToken();
+                    vmWriter.writePush(getKind(name), symbolTable.indexOf(name));
                     vmWriter.writeArithmetic("add");
                     vmWriter.writePop("pointer", 1);
-                } else{
-                    // subroutineCall
+                    vmWriter.writePush("that", 0);
+                } else{     // subroutineCall
                     tokenizer.back();
                     subroutineCall();
                 }
-            } else{
-                // varName
+            } else{     // varName
                 tokenizer.back();
                 String name = tokenizer.getToken();
-                vmWriter.writePush(symbolTable.kindOf(name), symbolTable.indexOf(name));
+                vmWriter.writePush(getKind(name), symbolTable.indexOf(name));
                 advanceToken();
             }
         }
     }
 
+    // subroutineName(expressionList) | (className|varName).subroutineName(expressionList)
     public void subroutineCall() throws IOException{
         tokenizer.advance();
-        // subroutineName(expressionList) | (className|varName).subroutineName(expressionList)
-        if(tokenizer.getToken().equals("(")){
+        String fullName = "ERROR";
+        if(tokenizer.getToken().equals("(")){   // subroutineName(expressionList)
             tokenizer.back();
-            // subroutineName(expressionList)
+            vmWriter.writePush("pointer", 0);
             String subroutineName = tokenizer.getToken();
-            advanceToken();
-            advanceToken();
+            advanceToken(2);
+            expressionListCount = 1;
             compileExpressionList();
             advanceToken();
-            vmWriter.writeCall(subroutineName, expressionListCount);
-        } else if(tokenizer.getToken().equals(".")){
+            fullName = symbolTable.getClassName() + "." + subroutineName;
+        } else if(tokenizer.getToken().equals(".")){ // (className|varName).subroutineName(expressionList)
             tokenizer.back();
-            // (className|varName).subroutineName(expressionList)
+            // this is a method call or a constructor
             String cvName = tokenizer.getToken();
-            advanceToken();
-            advanceToken();
+            advanceToken(2);
             String subroutineName = tokenizer.getToken();
-            advanceToken();
-            advanceToken();
+            if(getKind(cvName).equals("none")){ // this means it's a constructor
+                fullName = cvName + "." + subroutineName;
+                expressionListCount = 0;
+            } else{ // otherwise it's a method call on an object, which is passed implicitly
+                fullName = symbolTable.typeOf(cvName) + "." + subroutineName;
+                vmWriter.writePush(getKind(cvName), symbolTable.indexOf(cvName));
+                expressionListCount = 1;
+            }
+            advanceToken(2);
             compileExpressionList();
             advanceToken();
-            String fullName = cvName + "." + subroutineName;
-            vmWriter.writeCall(fullName, expressionListCount);
-        } else{
-            vmWriter.write("SUBROUTINE CALL ERROR");
         }
+        vmWriter.writeCall(fullName, expressionListCount);
     }
 
-    int expressionListCount = 0;
+    private int expressionListCount = 0;
     // (expression (',' expression)* )?
     public void compileExpressionList() throws IOException{
-        expressionListCount = 0;
         if(!isEnding()){
-            expressionListCount = 1;
+            expressionListCount++;
             compileExpression();
             while(!isEnding()){
                 expressionListCount++;

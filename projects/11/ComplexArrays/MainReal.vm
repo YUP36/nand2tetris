@@ -405,8 +405,9 @@ pop local 2
 push local 2
 push constant 0
 eq
-not
-if-goto ifLabel.0
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
 push local 0
 push constant 10
 call Main.fill 2
@@ -463,7 +464,7 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-label ifLabel.0
+label IF_FALSE0
 push constant 44
 call String.new 1
 push constant 84
@@ -676,12 +677,12 @@ push constant 2
 call Math.multiply 2
 return
 function Main.fill 0
-label whileLoop.0
+label WHILE_EXP0
 push argument 1
 push constant 0
 gt
 not
-if-goto breakWhileLoop.0
+if-goto WHILE_END0
 push argument 1
 push constant 1
 sub
@@ -695,7 +696,7 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-goto whileLoop.0
-label breakWhileLoop.0
+goto WHILE_EXP0
+label WHILE_END0
 push constant 0
 return

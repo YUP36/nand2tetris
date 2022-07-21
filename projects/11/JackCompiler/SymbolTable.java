@@ -3,13 +3,6 @@ import java.util.*;
 public class SymbolTable {
 
     private String className;
-    // private ArrayList<String> voidSubroutines = new ArrayList<String>(Arrays.asList("Sys.halt", "Sys.error", "Sys.wait", 
-    //                                                                             "Memory.poke", "Memory.deAlloc", 
-    //                                                                             "Screen.drawCircle", "Screen.drawRectangle", "Screen.drawLine", "Screen.drawPixel", "Screen.clearScreen", "Screen.setColor",
-    //                                                                             "Output.moveCursor", "Output.printChar", "Output.printString", "Output.printInt", "Output.println", "Output.backspace",
-    //                                                                             "Array.dispose",
-    //                                                                             "String.setCharAt", "String.eraseLastChar", "String.setInt"));
-
     private ArrayList<String[]> argumentTable;
     private ArrayList<String[]> localTable;
     private ArrayList<String[]> fieldTable;
@@ -48,14 +41,6 @@ public class SymbolTable {
         return className;
     }
 
-    // public void addVoidSubroutine(String name){
-    //     voidSubroutines.add(name);
-    // }
-
-    // public boolean voidSubroutinesContains(String name){
-    //     return voidSubroutines.contains(name);
-    // }
-
     public void define(String name, String type, String kind){
         listOfTables.get(tableOrder.indexOf(kind)).add(new String[] {name, type, kind});
     }
@@ -91,6 +76,6 @@ public class SymbolTable {
                 }
             }
         }
-        return 0;
+        return -1;
     }
 }
