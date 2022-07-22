@@ -15,6 +15,15 @@ class Math {
 
     /** Returns the absolute value of x. */
     function int abs(int x) {
+        if(x < 0){
+            return -x;
+        } else{
+            return x;
+        }
+    }
+
+    function boolean bit(int x, int i){
+
     }
 
     /** Returns the product of x and y. 
@@ -23,6 +32,18 @@ class Math {
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
+        int sum, shiftedX, i;
+        let sum = 0;
+        let shiftedX = x;
+        let i = 0;
+        while(i < 16){
+            if(bit(y, i) = 1){
+                sum = sum + shiftedX;
+            }
+            shiftedX = shiftedX + shiftedX;
+        }
+        return sum;
+
     }
 
     /** Returns the integer part of x/y.
@@ -35,13 +56,24 @@ class Math {
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
+
     }
 
     /** Returns the greater number. */
     function int max(int a, int b) {
+        if(a > b){
+            return b;
+        } else{
+            return a;
+        }
     }
 
     /** Returns the smaller number. */
     function int min(int a, int b) {
+        if(a < b){
+            return a;
+        } else{
+            return b;
+        }
     }
 }
