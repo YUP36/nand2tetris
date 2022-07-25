@@ -8,22 +8,39 @@
  * Note: Jack compilers implement multiplication and division using OS method calls.
  */
 class Math {
+    static Array twoToThe;
 
     /** Initializes the library. */
     function void init() {
+        let twoToThe = new Array(16);
+        let twoToThe[0] = 1;
+        let twoToThe[1] = 2;
+        let twoToThe[2] = 4;
+        let twoToThe[3] = 8;
+        let twoToThe[4] = 16;
+        let twoToThe[5] = 32;
+        let twoToThe[6] = 64;
+        let twoToThe[7] = 128;
+        let twoToThe[8] = 256;
+        let twoToThe[9] = 512;
+        let twoToThe[10] = 1024;
+        let twoToThe[11] = 2048;
+        let twoToThe[12] = 4096;
+        let twoToThe[13] = 8192;
+        let twoToThe[14] = 16384;
+        let twoToThe[15] = 32768;
     }
 
     /** Returns the absolute value of x. */
     function int abs(int x) {
         if(x < 0){
             return -x;
-        } else{
-            return x;
         }
+        return x;
     }
 
     function boolean bit(int x, int i){
-
+        return ((x & twoToThe[i]) = twoToThe[i]);
     }
 
     /** Returns the product of x and y. 
@@ -38,9 +55,10 @@ class Math {
         let i = 0;
         while(i < 16){
             if(bit(y, i) = 1){
-                sum = sum + shiftedX;
+                let sum = sum + shiftedX;
             }
-            shiftedX = shiftedX + shiftedX;
+            let shiftedX = shiftedX + shiftedX;
+            let i = i + 1;
         }
         return sum;
 
@@ -52,6 +70,13 @@ class Math {
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
+        int sum, index;
+        let sum = 0;
+        let index = 15;
+
+        while(index > -1){
+
+        }
     }
 
     /** Returns the integer part of the square root of x. */
