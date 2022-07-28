@@ -8,8 +8,11 @@
  */
 class Keyboard {
 
+    static int ram;
+
     /** Initializes the keyboard. */
     function void init() {
+        let ram = 0;
     } 
 
     /**
@@ -33,6 +36,7 @@ class Keyboard {
      * F1 - F12 = 141 - 152
      */
     function char keyPressed() {
+        return ram[24576];
     }
 
     /**								
@@ -41,6 +45,14 @@ class Keyboard {
      * of the pressed key.
      */
     function char readChar() {
+        var char c;
+        while(Keyboard.keyPressed() = 0){
+        }
+        let c = Keyboard.keyPressed();
+        while(~(Keyboard.keyPressed() = 0)){
+        }
+        do Output.printChar(c);
+        return c;
     }
 
     /**								
@@ -49,6 +61,13 @@ class Keyboard {
      * and returns its value. Also handles user backspaces.
      */
     function String readLine(String message) {
+        var String s;
+        var char c;
+        let s = String.new(50);
+        while(true){
+            let c = Keyboard.readChar();
+            
+        }
     }   
 
     /**								
