@@ -8,27 +8,22 @@
  * Note: Jack compilers implement multiplication and division using OS method calls.
  */
 class Math {
+    
     static Array twoToThe;
 
     /** Initializes the library. */
     function void init() {
-        let twoToThe = new Array(16);
-        let twoToThe[0] = 1;
-        let twoToThe[1] = 2;
-        let twoToThe[2] = 4;
-        let twoToThe[3] = 8;
-        let twoToThe[4] = 16;
-        let twoToThe[5] = 32;
-        let twoToThe[6] = 64;
-        let twoToThe[7] = 128;
-        let twoToThe[8] = 256;
-        let twoToThe[9] = 512;
-        let twoToThe[10] = 1024;
-        let twoToThe[11] = 2048;
-        let twoToThe[12] = 4096;
-        let twoToThe[13] = 8192;
-        let twoToThe[14] = 16384;
-        let twoToThe[15] = 32768;
+        var int i, powerOfTwo;
+        let i = 0;
+        let powerOfTwo = 1;
+
+        let twoToThe = Array.new(16);
+        while(i < 16){
+            let twoToThe[i] = powerOfTwo;
+            let powerOfTwo = powerOfTwo + powerOfTwo;
+            let i = i + 1;
+        }
+        return;
     }
 
     /** Returns the absolute value of x. */
@@ -39,8 +34,12 @@ class Math {
         return x;
     }
 
+    function int twoToThe(int power){
+        return twoToThe[power];
+    }
+
     function boolean bit(int x, int i){
-        return ((x & twoToThe[i]) = twoToThe[i]);
+        return (x & twoToThe[i]) > 0;
     }
 
     /** Returns the product of x and y. 
@@ -49,16 +48,21 @@ class Math {
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
-        int sum, shiftedX, i;
+        var int sum, shiftedX, i, ay;
         let sum = 0;
         let shiftedX = x;
+        let ay = Math.abs(y);
+
         let i = 0;
         while(i < 16){
-            if(bit(y, i) = 1){
+            if(Math.bit(ay, i)){
                 let sum = sum + shiftedX;
             }
             let shiftedX = shiftedX + shiftedX;
             let i = i + 1;
+        }
+        if(y < 0){
+            return (-sum);
         }
         return sum;
 
@@ -70,35 +74,57 @@ class Math {
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
     function int divide(int x, int y) {
-        int sum, index;
-        let sum = 0;
-        let index = 15;
-
-        while(index > -1){
-
+        var int quotient, doubleQuotient, ax, ay, sign;
+        let ax = Math.abs(x);
+        let ay = Math.abs(y);
+        if(ax < ay){
+            return 0;
         }
+
+        if(((x > 0) & (y > 0)) | ((x < 0) & (y < 0))){
+            let sign = 1;
+        } else{
+            let sign = -1;
+        }
+
+        let quotient = Math.divide(ax, ay + ay);
+        let doubleQuotient = quotient + quotient;
+        if((ax - (doubleQuotient * ay)) < ay){
+            return sign * doubleQuotient;
+        }
+        return sign * (doubleQuotient + 1);
+        
     }
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
-
+        var int sqrtX, j, testSum, testSumSquared;
+        let sqrtX = 0;
+        let j = 7;
+        while(j > -1){
+            let testSum = sqrtX + twoToThe[j];
+            let testSumSquared = testSum * testSum;
+            if(((testSumSquared < x) | (testSumSquared = x)) & (testSumSquared > 0)){
+                let sqrtX = testSum;
+            }
+            let j = j - 1;
+        }
+        return sqrtX;
     }
 
     /** Returns the greater number. */
     function int max(int a, int b) {
         if(a > b){
-            return b;
-        } else{
             return a;
         }
+        return b;
     }
 
     /** Returns the smaller number. */
     function int min(int a, int b) {
         if(a < b){
             return a;
-        } else{
-            return b;
         }
+        return b;
     }
 }
