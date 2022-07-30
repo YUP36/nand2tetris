@@ -21,6 +21,8 @@ class Output {
     static int screen;
     static int row;
     static int column;
+    static int xCoord;
+    static int yCoord;
     static int ramLocation;
     static boolean isEven;
     static int shift;
@@ -188,7 +190,7 @@ class Output {
     /** Moves the cursor to the j-th column of the i-th row,
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
-        var int xCoord, yCoord, mask, index;
+        var int mask, index;
         let row = i;
         let column = j;
         let isEven = ((column & 1) = 0);
@@ -198,16 +200,9 @@ class Output {
         let ramLocation = (352 * row) + (column / 2);
         if(isEven){
             let shift = 1;
-            // let mask = -Math.twoToThe(8);
         } else{
             let shift = 256;
-            // let mask = Math.twoToThe(8) - 1;
         }
-//        let index = 0;
-//        while(index < 11){
-//            let screen[ramLocation + (index * 32)] = (screen[ramLocation + (index * 32)] & mask);
-//            let index = index + 1;
-//        }
         do Screen.setColor(false);
         do Screen.drawRectangle(xCoord, yCoord, xCoord + 7, yCoord + 10);
         return;
