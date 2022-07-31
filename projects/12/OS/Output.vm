@@ -1485,7 +1485,7 @@ add
 pop pointer 1
 push that 0
 return
-function Output.moveCursor 2
+function Output.moveCursor 3
 push argument 0
 pop static 2
 push argument 1
@@ -1523,6 +1523,8 @@ label IF_FALSE0
 push constant 256
 pop static 8
 label IF_END0
+call Screen.getColor 0
+pop local 2
 push constant 0
 call Screen.setColor 1
 pop temp 0
@@ -1535,6 +1537,9 @@ push static 5
 push constant 10
 add
 call Screen.drawRectangle 4
+pop temp 0
+push local 2
+call Screen.setColor 1
 pop temp 0
 push constant 0
 return

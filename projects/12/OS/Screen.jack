@@ -32,6 +32,7 @@ class Screen {
         let i = 0;
         while(i < 8192){
             let screen[i] = white;
+            let i = i + 1;
         }
         return;
     }
@@ -46,6 +47,10 @@ class Screen {
             let ramColor = 0;
         }
         return;
+    }
+
+    function boolean getColor(){
+        return color;
     }
 
     /** Draws the (x,y) pixel, using the current color. */

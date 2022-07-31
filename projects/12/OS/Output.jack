@@ -191,6 +191,7 @@ class Output {
      *  and erases the character displayed there. */
     function void moveCursor(int i, int j) {
         var int mask, index;
+        var boolean prevColor;
         let row = i;
         let column = j;
         let isEven = ((column & 1) = 0);
@@ -203,8 +204,10 @@ class Output {
         } else{
             let shift = 256;
         }
+        let prevColor = Screen.getColor();
         do Screen.setColor(false);
         do Screen.drawRectangle(xCoord, yCoord, xCoord + 7, yCoord + 10);
+        do Screen.setColor(prevColor);
         return;
     }
 

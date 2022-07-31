@@ -1,14 +1,9 @@
 function Keyboard.init 0
 push constant 0
-pop static 0
-push constant 0
 return
 function Keyboard.keyPressed 0
 push constant 24576
-push static 0
-add
-pop pointer 1
-push that 0
+call Memory.peek 1
 return
 function Keyboard.readChar 1
 label WHILE_EXP0
@@ -61,7 +56,7 @@ if-goto WHILE_END0
 call Keyboard.readChar 0
 pop local 1
 push local 1
-push constant 128
+call String.newLine 0
 eq
 if-goto IF_TRUE0
 goto IF_FALSE0
@@ -73,7 +68,7 @@ return
 goto IF_END0
 label IF_FALSE0
 push local 1
-push constant 129
+call String.backSpace 0
 eq
 if-goto IF_TRUE1
 goto IF_FALSE1
