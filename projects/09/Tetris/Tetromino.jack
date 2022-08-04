@@ -1,0 +1,202 @@
+class Tetromino{
+    field int row;
+    field int column;
+    field int type;
+    field Array positions;
+    field Array newPositions;
+
+    constructor Tetromino new(int inputType){
+        var int i;
+        var Array block;
+
+        let type = inputType;
+
+        let positions = Array.new(4);
+        let newPositions = Array.new(4);
+        let i = 0;
+        while(i < 4){
+            let block = Array.new(2);
+            let positions[i] = block;
+            let block = Array.new(2);
+            let newPositions[i] = block;
+            let i = i + 1;
+        }
+        do calculatePositions(0, 5);
+        do syncPositions();
+        
+        return this;
+    }
+
+    method void dispose(){
+        var int i;
+        let i = 0;
+        while(i < 4){
+            do Memory.deAlloc(positions[i]);
+            do Memory.deAlloc(newPositions[i]);
+            let i = i + 1;
+        }
+        do Memory.deAlloc(positions);
+        do Memory.deAlloc(newPositions);
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method int getType(){
+        return type;
+    }
+
+    // Doesn't change any field values except newPositions
+    method Array calculatePositions(int rowIn, int columnIn){
+        var Array block;
+        var int i;
+
+        let i = 0;
+        while(i < 4){
+            let block = newPositions[i];
+            let block[0] = rowIn;
+            let block[1] = columnIn;
+            let i = i + 1;
+        }
+        if(type = 0){   // LINE
+            let block = newPositions[1];
+            do Tetromino.left(block);
+            let block = newPositions[2];
+            do Tetromino.right(block);
+            let block = newPositions[3];
+            do Tetromino.right(block);
+            do Tetromino.right(block);
+        } if(type = 1){     // T
+            let block = newPositions[1];
+            do Tetromino.left(block);
+            let block = newPositions[2];
+            do Tetromino.right(block);
+            let block = newPositions[3];
+            do Tetromino.bottom(block);
+        } if(type = 2){     // slant right
+            let block = newPositions[1];
+            do Tetromino.right(block);
+            let block = newPositions[2];
+            do Tetromino.bottom(block);
+            let block = newPositions[3];
+            do Tetromino.bottomLeft(block);
+        } if(type = 3){     // slant left
+            let block = newPositions[1];
+            do Tetromino.left(block);
+            let block = newPositions[2];
+            do Tetromino.bottom(block);
+            let block = newPositions[3];
+            do Tetromino.bottomRight(block);
+        } if(type = 4){     // L
+            let block = newPositions[1];
+            do Tetromino.left(block);
+            let block = newPositions[2];
+            do Tetromino.right(block);
+            let block = newPositions[3];
+            do Tetromino.bottomLeft(block);
+        } if(type = 5){     // backwards L
+            let block = newPositions[1];
+            do Tetromino.left(block);
+            let block = newPositions[2];
+            do Tetromino.right(block);
+            let block = newPositions[3];
+            do Tetromino.bottomRight(block);
+        } if(type = 6){     // Square
+            let block = newPositions[1];
+            do Tetromino.right(block);
+            let block = newPositions[2];
+            do Tetromino.bottom(block);
+            let block = newPositions[3];
+            do Tetromino.bottomRight(block);
+        } 
+        return newPositions;
+    }
+
+    method void syncPositions(){
+        var int i;
+        var Array block, newBlock, center;
+
+        let center = newPositions[0];
+        let row = center[0];
+        let column = center[1];
+        let i = 0;
+        while(i < 4){
+            let newBlock = newPositions[i];
+            let block = positions[i];
+            let block[0] = newBlock[0];
+            let block[1] = newBlock[1];
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void left(Array block){
+        let block[1] = block[1] - 1;
+        return;
+    }
+
+    function void right(Array block){
+        let block[1] = block[1] + 1;
+        return;
+    }
+    
+    function void bottom(Array block){
+        let block[0] = block[0] + 1;
+        return;
+    }
+
+    function void bottomLeft(Array block){
+        do Tetromino.left(block);
+        do Tetromino.bottom(block);
+        return;
+    }
+
+    function void bottomRight(Array block){
+        do Tetromino.right(block);
+        do Tetromino.bottom(block);
+        return;
+    }
+
+    method Array calculateMove(int direction, boolean isDown){
+        var int i;
+        var Array block, newBlock;
+
+        let i = 0;
+        while(i < 4){
+            let block = positions[i];
+            let newBlock = newPositions[i];
+            if(isDown){
+                let newBlock[0] = block[0] + 1;
+                let newBlock[1] = block[1];
+            } else{
+                let newBlock[1] = block[1] + direction;
+                let newBlock[0] = block[0];
+            }
+            let i = i + 1;
+        }
+        return newPositions;
+    }
+
+    // Clockwise rotation   (row, column) -> (-column, row)
+    method Array calculateRotate(){
+        var int i, deltaRow, deltaColumn;
+        var Array block, newBlock, center;
+
+        let center = positions[0];
+        let i = 0;
+        do Output.moveCursor(16, 43);
+        while(i < 4){
+            let block = positions[i];
+            let newBlock = newPositions[i];
+            let deltaRow = block[0] - center[0];
+            let deltaColumn = block[1] - center[1];
+            let newBlock[0] = center[0] + deltaColumn;
+            let newBlock[1] = center[1] - deltaRow;
+            let i = i + 1;
+        }
+        return  newPositions;
+    }
+
+    method Array getPositions(){
+        return positions;
+    }
+}

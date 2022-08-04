@@ -1,0 +1,471 @@
+function Grid.init 0
+push constant 16384
+push constant 170
+add
+pop static 1
+push constant 156
+push constant 1
+push constant 323
+push constant 248
+call Screen.drawRectangle 4
+pop temp 0
+push constant 0
+call Screen.setColor 1
+pop temp 0
+push constant 159
+push constant 4
+push constant 320
+push constant 245
+call Screen.drawRectangle 4
+pop temp 0
+call Grid.initMap 0
+pop temp 0
+push constant 0
+return
+function Grid.initMap 0
+push constant 8
+call Array.new 1
+pop static 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 7
+push constant 0
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 1
+push constant 0
+push constant 32766
+push constant 32766
+push constant 28646
+push constant 26574
+push constant 29598
+push constant 31038
+push constant 31870
+push constant 32318
+push constant 31902
+push constant 31182
+push constant 29670
+push constant 26614
+push constant 32766
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 2
+push constant 0
+push constant 32766
+push constant 32766
+push constant 24582
+push constant 26566
+push constant 25494
+push constant 26934
+push constant 27766
+push constant 28214
+push constant 27798
+push constant 27078
+push constant 25574
+push constant 24582
+push constant 32766
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 3
+push constant 0
+push constant 32766
+push constant 32382
+push constant 31806
+push constant 31134
+push constant 29646
+push constant 26214
+push constant 19890
+push constant 19890
+push constant 26214
+push constant 29646
+push constant 31134
+push constant 31806
+push constant 32382
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 4
+push constant 0
+push constant 32766
+push constant 32766
+push constant 24582
+push constant 28662
+push constant 26646
+push constant 27606
+push constant 27222
+push constant 27222
+push constant 27606
+push constant 26646
+push constant 28662
+push constant 24582
+push constant 32766
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 5
+push constant 0
+push constant 32766
+push constant 30750
+push constant 30702
+push constant 27702
+push constant 23514
+push constant 22122
+push constant 21930
+push constant 21930
+push constant 22122
+push constant 23514
+push constant 27702
+push constant 30702
+push constant 30750
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 6
+push constant 0
+push constant 32766
+push constant 24306
+push constant 20198
+push constant 26318
+push constant 29342
+push constant 31486
+push constant 32642
+push constant 16894
+push constant 32606
+push constant 31054
+push constant 29542
+push constant 26482
+push constant 20346
+push constant 32766
+push constant 0
+call Grid.initBlock 17
+pop temp 0
+push constant 0
+return
+function Grid.initBlock 1
+push constant 16
+call Array.new 1
+pop local 0
+push argument 0
+push static 0
+add
+push local 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+push local 0
+add
+push argument 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 1
+push local 0
+add
+push argument 2
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 2
+push local 0
+add
+push argument 3
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 3
+push local 0
+add
+push argument 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 4
+push local 0
+add
+push argument 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 5
+push local 0
+add
+push argument 6
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 6
+push local 0
+add
+push argument 7
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 7
+push local 0
+add
+push argument 8
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 8
+push local 0
+add
+push argument 9
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 9
+push local 0
+add
+push argument 10
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 10
+push local 0
+add
+push argument 11
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 11
+push local 0
+add
+push argument 12
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 12
+push local 0
+add
+push argument 13
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 13
+push local 0
+add
+push argument 14
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 14
+push local 0
+add
+push argument 15
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 15
+push local 0
+add
+push argument 16
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+return
+function Grid.drawBlock 3
+push argument 0
+push constant 0
+lt
+push argument 0
+push constant 15
+gt
+or
+push argument 1
+push constant 0
+lt
+or
+push argument 1
+push constant 9
+gt
+or
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+return
+label IF_FALSE0
+push argument 1
+push argument 0
+push constant 512
+call Math.multiply 2
+add
+pop local 1
+push argument 2
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 2
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push local 1
+push static 1
+add
+push local 0
+push local 2
+add
+pop pointer 1
+push that 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 1
+push constant 32
+add
+pop local 1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Grid.invertBlock 2
+push argument 1
+push argument 0
+push constant 512
+call Math.multiply 2
+add
+pop local 1
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push local 1
+push static 1
+add
+push local 1
+push static 1
+add
+pop pointer 1
+push that 0
+not
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 1
+push constant 32
+add
+pop local 1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Grid.moveDown1 2
+push argument 1
+push argument 0
+push constant 512
+call Math.multiply 2
+add
+pop local 1
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push constant 16
+lt
+not
+if-goto WHILE_END0
+push local 1
+push constant 512
+add
+push static 1
+add
+push local 1
+push static 1
+add
+pop pointer 1
+push that 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 1
+push constant 32
+add
+pop local 1
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return

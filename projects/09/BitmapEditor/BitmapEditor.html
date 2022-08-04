@@ -14,10 +14,22 @@
         function InitGrid() {
             var _grid = new Array(16);
             for (i=0; i<16; i++) {
-                _grid[i] = new Array(16);
-                for (j=0; j<16; j++) {
-                    _grid[i][j]=false;
+                if((i == 0) || (i == 15)){
+                    _grid[i] = new Array(16);
+                    for (j=0; j<16; j++) {
+                        _grid[i][j]=false;
+                    }
+                } else{
+                    _grid[i] = new Array(16);
+                    for (j=0; j<16; j++) {
+                        if((j == 0) || j == 15){
+                            _grid[i][j]=false;
+                        } else{
+                            _grid[i][j]=true;
+                        }
+                    }
                 }
+                
             }
             return _grid;
         }
@@ -102,6 +114,8 @@
                                     document.getElementById('functionName').value +
                                     "(int location) {\n\tlet memAddress = 16384+location;\n";
 
+
+            finalString = "";
             for (i=0; i<16; i++) {
                 //get grid binary representation
                 binary = "";
@@ -139,9 +153,13 @@
                     value = -(value + 1)
 
                 generateCode.value = generateCode.value + GenerateCodeLine(i, value);
+                finalString = finalString + value.toString() + ", ";
+                
             }
 
+
             generateCode.value = generateCode.value + "\treturn;\n}";
+            generateCode.value = generateCode.value + finalString;
         }
 
         function GenerateCodeLine(row, value) {

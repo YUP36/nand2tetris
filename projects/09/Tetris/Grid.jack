@@ -1,0 +1,125 @@
+class Grid {
+
+    static Array blockMaps;
+    static int screen;
+
+    function void init(){
+        let screen = 16384 + 170;
+        do Screen.drawRectangle(156, 1, 323, 248);
+        do Screen.setColor(false);
+        do Screen.drawRectangle(159, 4, 320, 245);
+        do Grid.initMap();
+        return;
+    }
+
+    function void initMap(){
+        let blockMaps = Array.new(8);
+
+        do Grid.initBlock(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        do Grid.initBlock(7, 0, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 32766, 0);
+        do Grid.initBlock(1, 0, 32766, 32766, 28646, 26574, 29598, 31038, 31870, 32318, 31902, 31182, 29670, 26614, 32766, 32766, 0);
+        do Grid.initBlock(2, 0, 32766, 32766, 24582, 26566, 25494, 26934, 27766, 28214, 27798, 27078, 25574, 24582, 32766, 32766, 0);
+        do Grid.initBlock(3, 0, 32766, 32382, 31806, 31134, 29646, 26214, 19890, 19890, 26214, 29646, 31134, 31806, 32382, 32766, 0);
+        do Grid.initBlock(4, 0, 32766, 32766, 24582, 28662, 26646, 27606, 27222, 27222, 27606, 26646, 28662, 24582, 32766, 32766, 0);
+        do Grid.initBlock(5, 0, 32766, 30750, 30702, 27702, 23514, 22122, 21930, 21930, 22122, 23514, 27702, 30702, 30750, 32766, 0);
+        do Grid.initBlock(6, 0, 32766, 24306, 20198, 26318, 29342, 31486, 32642, 16894, 32606, 31054, 29542, 26482, 20346, 32766, 0);
+
+        return;
+    }
+
+    function void initBlock(int index, int a, int b, int c, int d, int e, int f, int g, int h,
+                            int i, int j, int k, int l, int m, int n, int o, int p){
+        var Array map;
+        
+        let map = Array.new(16);
+        let blockMaps[index] = map;
+
+        let map[0] = a;
+        let map[1] = b;
+        let map[2] = c;
+        let map[3] = d;
+        let map[4] = e;
+        let map[5] = f;
+        let map[6] = g;
+        let map[7] = h;
+        let map[8] = i;
+        let map[9] = j;
+        let map[10] = k;
+        let map[11] = l;
+        let map[12] = m;
+        let map[13] = n;
+        let map[14] = o;
+        let map[15] = p;
+
+        return;
+    }
+
+    function void drawBlock(int row, int column, int type){
+        var int i, ramLocation;
+        var Array blockMap;
+
+        if((row < 0) | (row > 15) | (column < 0) | (column > 9)){
+            return;
+        }
+
+        let ramLocation = column + (row * 512);
+        let blockMap = blockMaps[type];
+
+        let i = 0;
+        while(i < 16){
+            let screen[ramLocation] = blockMap[i];
+            let ramLocation = ramLocation + 32;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void invertBlock(int row, int column){
+        var int i, ramLocation;
+
+        let ramLocation = column + (row * 512);
+
+        let i = 0;
+        while(i < 16){
+            let screen[ramLocation] = ~screen[ramLocation];
+            let ramLocation = ramLocation + 32;
+            let i = i + 1;
+        }
+        return;
+    }
+
+    function void moveDown1(int row, int column){
+        var int i, ramLocation;
+
+        let ramLocation = column + (row * 512);
+
+        let i = 0;
+        while(i < 16){
+            let screen[ramLocation + 512] = screen[ramLocation];
+            let ramLocation = ramLocation + 32;
+            let i = i + 1;
+        }
+        return;
+    }
+
+
+//    The old drawBlock function that operated on 8 by 8 pixel squares instead of 16 by 16
+//    function void drawBlock(int row, int column, int type){
+//        var int rowMod2, columnMod2, i, ramLocation, rightShift;
+//        var Array blockMap;
+//
+//        let rowMod2 = row & 1;
+//        let columnMod2 = column & 1;
+//        let ramLocation = (column / 2) + (row * 256);
+//        let rightShift = (255 * columnMod2) + 1;
+//        let blockMap = blockMaps[type];
+//
+//        let i = 0;
+//        while(i < 8){
+//            let screen[ramLocation] = screen[ramLocation] + (rightShift * blockMap[i]);
+//            let ramLocation = ramLocation + 32;
+//            let i = i + 1;
+//        }
+//        return;
+//    }
+}

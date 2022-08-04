@@ -1,0 +1,274 @@
+
+class TetrisGame{
+
+    field int score;
+    field Array tetrisState;
+    field int randomNumberMod7;
+    field Tetromino currentPiece;
+    static Array twoToThe;
+    field boolean ending;
+
+    constructor TetrisGame new(){
+        var int i, powerOfTwo;
+        let i = 0;
+        let powerOfTwo = 1;
+        let twoToThe = Array.new(10);
+        while(i < 15){
+            let twoToThe[i] = powerOfTwo;
+            let powerOfTwo = powerOfTwo + powerOfTwo;
+            let i = i + 1;
+        }
+
+        let score = 0;
+        let randomNumberMod7 = 0;
+        do Grid.init();
+
+        do Output.moveCursor(9, 1);
+        do Output.printString("Nand2tetris!");
+        do Output.moveCursor(12, 3);
+        do Output.printString("Score:");
+        do updateScore();
+
+        let tetrisState = Array.new(15);
+        return this;
+    }
+
+    method void dispose(){
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void updateScore(){
+        do Output.moveCursor(12, 10);
+        do Output.printInt(score);
+        return;
+    }
+
+    method void updateRandomNumber(){
+        if(randomNumberMod7 = 6){
+            let randomNumberMod7 = 0;
+        } else{
+            let randomNumberMod7 = randomNumberMod7 + 1;
+        }
+        return;
+    }
+
+    method void run(){      // 10X15 Grid
+        var boolean keyIsPressed;
+        var int key, time, i;
+
+        let currentPiece = Tetromino.new(randomNumberMod7);
+        do updatePiece(false);
+
+        let ending = false;
+        let time = 2000;
+        while(~ending){
+            let i = 0;
+            while((i < time) & (~ending)){
+                let key = Keyboard.keyPressed();
+                if(~keyIsPressed){
+                    if(key = 80){    // pause
+                        do Output.moveCursor(15, 5);
+                        do Output.printString("PAUSED");
+                        while(~(key = 0)){ let key = Keyboard.keyPressed(); }
+                        while(~(key = 80)){ let key = Keyboard.keyPressed(); }
+                        while(~(key = 0)){let key = Keyboard.keyPressed(); }
+                        do Output.backSpace(); do Output.backSpace();
+                        do Output.backSpace(); do Output.backSpace();
+                        do Output.backSpace(); do Output.backSpace();
+                    }
+                    if(key = 81){ let ending = true; }  // quit
+                    if(key = 131){ do rotate(); }       // up arrow
+                    if(key = 133){ do moveDown(); }     // down arrow
+                    if(key = 130){ do moveLeft(); }     // left arrow
+                    if(key = 132){ do moveRight(); }     // right arrow
+                }
+                let keyIsPressed = ~(key = 0);
+                do Sys.wait(1);
+                do updateRandomNumber();
+                let i = i + 1;
+            }
+            do takeStep();
+        }
+        return;
+    }
+
+    method void takeStep(){
+        let score = score + 1;
+        do updateScore();
+        do moveDown();
+        return;
+    }
+
+    method void moveDown(){
+        if(isValid(currentPiece.calculateMove(0, true))){
+            do updatePiece(true);
+            do currentPiece.syncPositions();
+            do updatePiece(false);
+        } else{
+            do Output.moveCursor(21, 43);
+            do Output.printString("new piece");
+            do updateTetrisState();
+            if(gameOver()){
+                do Output.moveCursor(15, 5);
+                do Output.printString("Game Over!");
+                let ending = true;
+            }
+            do currentPiece.dispose();
+            let currentPiece = Tetromino.new(randomNumberMod7);
+            do updatePiece(false);
+        }
+        return;
+    }
+
+    method void updatePiece(boolean clear){
+        var int i;
+        var Array positions, block;
+
+        let positions = currentPiece.getPositions();
+        let i = 0;
+        while(i < 4){
+            let block = positions[i];
+            if(clear){
+                do Grid.drawBlock(block[0], block[1], 0);
+            } else{
+                do Grid.drawBlock(block[0], block[1], currentPiece.getType() + 1);
+            }
+            let i = i + 1;
+        }
+        return;
+    }
+
+    method void rotate(){
+        if(isValid(currentPiece.calculateRotate())){
+            do updatePiece(true);
+            do currentPiece.syncPositions();
+            do updatePiece(false);
+        }
+        return;
+    }
+    
+    method void moveLeft(){
+        if(isValid(currentPiece.calculateMove(-1, false))){
+            do updatePiece(true);
+            do currentPiece.syncPositions();
+            do updatePiece(false);
+        }
+        return;
+    }
+    
+    method void moveRight(){
+        if(isValid(currentPiece.calculateMove(1, false))){
+            do updatePiece(true);
+            do currentPiece.syncPositions();
+            do updatePiece(false);
+        }
+        return;
+    }
+
+    method boolean isValid(Array positions){
+        var Array block;
+        var int i;
+
+        let i = 0;
+        while(i < 4){
+            let block = positions[i];
+            if((block[0] < 0) | (block[0] > 14) | (block[1] < 0) | (block[1] > 9)){
+                do Output.moveCursor(20, 43);
+                do Output.printString("out of Bounds");
+                return false;
+            }
+            if((tetrisState[block[0]] & twoToThe[block[1]]) > 0){
+                do Output.moveCursor(21, 43);
+                do Output.printString("hit other block");
+                return false;
+            }
+            let i = i + 1;
+        }
+        return true;
+    }
+
+    method void updateTetrisState(){
+        var Array block, positions;
+        var int i;
+
+        let positions = currentPiece.getPositions();
+        let i = 0;
+        while(i < 4){
+            let block = positions[i];
+            let tetrisState[block[0]] = tetrisState[block[0]] | twoToThe[block[1]];
+            let i = i + 1;
+        }
+        let i = 0;
+        while(i < 15){
+            do Output.moveCursor(i, 43);
+            do Output.printInt(tetrisState[i]);
+            let i = i + 1;
+        }
+        do runLineClear();
+        return;
+    }
+
+    method boolean gameOver(){
+        if(tetrisState[0] > 0){
+            return true;
+        }
+        return false;
+    }
+
+    method void runLineClear(){
+        var int i, j, k;
+        var boolean willClear;
+
+        let willClear = false;
+        let i = 0;
+        while(i < 15){
+            if(tetrisState[i] = 1023){
+                let willClear = true;
+            }
+            let i = i + 1;
+        }
+        if(willClear){
+            let i = 0;
+            while(i < 4){
+                let j = 0;
+                while(j < 15){
+                    if(tetrisState[j] = 1023){
+                        let k = 0;
+                        while(k < 10){
+                            do Grid.invertBlock(j, k);
+                            let k = k + 1;
+                        }
+                    }
+                    let j = j + 1;
+                }
+                let i = i + 1;
+                do Sys.wait(300);
+            }
+        }
+
+//        if(willClear){
+//            let i = 0;
+//            while(i < 4){
+//                let j = 14;
+//                while(j > -1){
+//                    if(tetrisState[j] = 1023){
+//                        let m = j - 1;
+//                        while(m > -1){
+//                            let n = 0;
+//                            while(n < 10){
+//                                do Grid.moveDown1(m, n);
+//                            }
+//                            let n = n + 1;
+//                        }
+//                        let j = j + 1;
+//                    }
+//                    let j = j - 1;
+//                }
+//                let i = i + 1;
+//                do Sys.wait(300);
+//            }
+//        }        
+        return;
+    }
+}
