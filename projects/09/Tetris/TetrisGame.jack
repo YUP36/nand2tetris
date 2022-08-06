@@ -61,7 +61,7 @@ class TetrisGame{
         do updatePiece(false);
 
         let ending = false;
-        let time = 2000;
+        let time = 800;
         while(~ending){
             let i = 0;
             while((i < time) & (~ending)){
@@ -106,8 +106,6 @@ class TetrisGame{
             do currentPiece.syncPositions();
             do updatePiece(false);
         } else{
-            do Output.moveCursor(21, 43);
-            do Output.printString("new piece");
             do updateTetrisState();
             if(gameOver()){
                 do Output.moveCursor(15, 5);
@@ -174,13 +172,9 @@ class TetrisGame{
         while(i < 4){
             let block = positions[i];
             if((block[0] < 0) | (block[0] > 14) | (block[1] < 0) | (block[1] > 9)){
-                do Output.moveCursor(20, 43);
-                do Output.printString("out of Bounds");
                 return false;
             }
             if((tetrisState[block[0]] & twoToThe[block[1]]) > 0){
-                do Output.moveCursor(21, 43);
-                do Output.printString("hit other block");
                 return false;
             }
             let i = i + 1;
@@ -201,8 +195,6 @@ class TetrisGame{
         }
         let i = 0;
         while(i < 15){
-            do Output.moveCursor(i, 43);
-            do Output.printInt(tetrisState[i]);
             let i = i + 1;
         }
         do runLineClear();
@@ -217,58 +209,79 @@ class TetrisGame{
     }
 
     method void runLineClear(){
-        var int i, j, k;
-        var boolean willClear;
+        var int i, row, bonus;
+        var boolean clear;
 
-        let willClear = false;
+        let clear = false;
+        let bonus = 0;
+        let row = 0;
+        while(row < 15){
+            if(tetrisState[row] = 1023){
+                let bonus = (bonus * 2) + 100;
+                let clear = true;
+            }
+            let row = row + 1;
+        }
+        if(~clear){
+            return;
+        }
+
         let i = 0;
-        while(i < 15){
-            if(tetrisState[i] = 1023){
-                let willClear = true;
+        while(i < 4){
+            let row = 0;
+            while(row < 15){
+                if(tetrisState[row] = 1023){
+                    do invertLine(row);
+                }
+                let row = row + 1;
             }
             let i = i + 1;
-        }
-        if(willClear){
-            let i = 0;
-            while(i < 4){
-                let j = 0;
-                while(j < 15){
-                    if(tetrisState[j] = 1023){
-                        let k = 0;
-                        while(k < 10){
-                            do Grid.invertBlock(j, k);
-                            let k = k + 1;
-                        }
-                    }
-                    let j = j + 1;
-                }
-                let i = i + 1;
-                do Sys.wait(300);
-            }
+            do Sys.wait(300);
         }
 
-//        if(willClear){
-//            let i = 0;
-//            while(i < 4){
-//                let j = 14;
-//                while(j > -1){
-//                    if(tetrisState[j] = 1023){
-//                        let m = j - 1;
-//                        while(m > -1){
-//                            let n = 0;
-//                            while(n < 10){
-//                                do Grid.moveDown1(m, n);
-//                            }
-//                            let n = n + 1;
-//                        }
-//                        let j = j + 1;
-//                    }
-//                    let j = j - 1;
-//                }
-//                let i = i + 1;
-//                do Sys.wait(300);
-//            }
-//        }        
+        let row = 14;
+        while(row > -1){
+            if(tetrisState[row] = 1023){
+                do collapse(row);
+                let row = row + 1;
+            }
+            let row = row - 1;
+        }
+
+        let score = score + bonus;
+        do updateScore();
+        
         return;
     }
+
+    // collapses both the actual grid and the tetrisState
+    method void collapse(int deletedRow){
+        var int row, column;
+        
+        let row = deletedRow - 1;
+        while(row > -1){
+            let column = 0;
+            while(column < 10){
+                do Grid.moveDown1(row, column);
+                let column = column + 1;
+            }
+            let tetrisState[row + 1] = tetrisState[row];
+            let row = row - 1;
+        }
+        let tetrisState[0] = 0;
+        return;
+    }
+
+    method void invertLine(int row){
+        var int column;
+
+        let column = 0;
+        while(column < 10){
+            do Grid.invertBlock(row, column);
+            let column = column + 1;
+        }
+        return;
+    }
+
+
 }
