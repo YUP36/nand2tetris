@@ -21,4 +21,4 @@ Click the folder icon in the top left, select the nand2tetris/projects/09/Tetris
 ## Notes
 - I spent several months on this, and I had a lot of fun writing the assembler, VM translator, and tetris in the Jack programming langauge. 
 - I began regularly making commits around project 7. I actually skipped over Project 9 (the one where I code a game) and completed it last. 
-- My code can be found in the projects folder. In the earlier projects, they are in the hdl files. All of the Java files in the later projects (part 6+) were written by me, and the Jack files in projects 9 and 12 were written by me.
+- My code can be found in the projects folder. In the earlier projects, they are in the hdl files. All of the Java files in the later projects (part 6+) and the Jack files in projects 9 and 12 were written by me.
