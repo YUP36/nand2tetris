@@ -21,8 +21,8 @@ sh tools/VMEmulator.sh    # for Mac OS
 Click the folder icon in the top left, select the nand2tetris/projects/09/Tetris folder. Click yes, drag the slider to fast, and change "animate" from program flow to no animation. CLick the double arrow button, and enjoy Tetris!
 
 ## Images
-![alt text](https://github.com/YUP36/nand2tetris/main/nand2tetrisScreenshot1?raw=true)
-![alt text](https://github.com/YUP36/nand2tetris/main/nand2tetrisScreenshot2?raw=true)
+![screenshot1](https://github.com/YUP36/nand2tetris/blob/main/nand2tetrisScreenshot1?raw=true)
+![screenshot2](https://github.com/YUP36/nand2tetris/blob/main/nand2tetrisScreenshot2?raw=true)
 
 ## Notes
 - I spent several months on this, and I had a lot of fun writing the assembler, VM translator, and tetris in the Jack programming langauge. 
