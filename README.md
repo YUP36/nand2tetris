@@ -13,6 +13,7 @@ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
 ## Usage
 
 ```bash
+cd nand2tetris
 ./tools/VMEmulator.bat    # for Windows
 sh tools/VMEmulator.sh    # for Mac OS
 ./tools/VMEmulator.sh     # for Unix
