@@ -23,8 +23,8 @@ Click the folder icon in the top left, select the nand2tetris/projects/09/Tetris
 ## Images
 <table>
   <tr>
-    <th><img src="https://github.com/YUP36/nand2tetris/blob/master/nand2tetrisScreenshot1.png" width="500"></th>
-    <th><img src="https://github.com/YUP36/nand2tetris/blob/master/nand2tetrisScreenshot2.png" width="600"></th>
+    <th><img src="https://github.com/chrisli36/nand2tetris/blob/master/nand2tetrisScreenshot1.png" width="500"></th>
+    <th><img src="https://github.com/chrisli36/nand2tetris/blob/master/nand2tetrisScreenshot2.png" width="600"></th>
   </tr>
 </table>
 
